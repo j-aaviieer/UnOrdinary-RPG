@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <title>UnOrdinary-RPG | Wellston</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+<main class="shell">
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark">U</div><div><strong>UNORDINARY</strong><span>RPG · PROTOTYPE 0.1</span></div></div>
+    <div class="location"><i></i> WELLSTON · CAMPUS <button id="menuButton" class="icon-button" aria-label="Abrir teléfono">☰</button></div>
+  </header>
+  <section class="layout">
+    <aside class="panel side">
+      <div class="kicker">IDENTIDAD</div>
+      <div class="player"><div class="avatar">J</div><div><b id="playerName">Estudiante nuevo</b><small>Nivel medio · 3.0</small></div></div>
+      <div class="stat"><div><span>VIDA</span><b id="healthValue">100 / 100</b></div><div class="meter"><i id="healthFill" class="health"></i></div></div>
+      <div class="stat"><div><span>AURA</span><b id="auraValue">60 / 60</b></div><div class="meter"><i id="auraFill" class="aura"></i></div></div>
+      <hr><div class="kicker">HABILIDAD</div>
+      <div class="ability"><span>✦</span><div><b>Manifestación</b><small>Habilidad provisional</small></div></div>
+      <div class="stats"><div>PODER <b>3</b></div><div>DEFENSA <b>3</b></div><div>VELOCIDAD <b>3</b></div><div>RECUP. <b>3</b></div><div>TRUCO <b>3</b></div><div>NIVEL <b>3.0</b></div></div>
+      <hr><div class="kicker">REPUTACIÓN</div>
+      <div class="line"><span>Jerarquía escolar</span><b id="repValue">Neutral</b></div>
+      <div class="line"><span>Dinero</span><b>₩ 1.200</b></div>
+      <div class="line"><span>Relación social</span><b id="socialValue">0</b></div>
+      <p class="muted">Tus acciones afectan cómo te trata la comunidad.</p>
+    </aside>
+    <section class="world">
+      <div class="world-heading"><div><div class="kicker">MUNDO ABIERTO · ZONA 01</div><h1>Wellston Private High School</h1></div><span class="day">◷ LUNES · 08:15 AM</span></div>
+      <div class="game-frame"><div id="game"></div><span class="overlay">● EXPLORACIÓN</span><span id="auraState" class="overlay right">AURA INACTIVA</span><div id="interactionHint" class="hint">Explora el patio de Wellston</div><div id="toast" class="toast"></div></div>
+      <div class="controls"><span><kbd>W A S D</kbd> Mover</span><span><kbd>E</kbd> Interactuar</span><span><kbd>Q</kbd> Aura</span><span><kbd>SHIFT</kbd> Correr</span></div>
+      <div class="objective"><div><div class="kicker">OBJETIVO ACTUAL</div><b>Conoce a los estudiantes de Wellston.</b></div><button id="missionButton">Ver misiones ↗</button></div>
+    </section>
+    <aside class="panel side right">
+      <div class="panel-title"><div><div class="kicker">REGISTRO</div><h2>Actividad</h2></div><span class="pill">EN VIVO</span></div>
+      <div id="activityList" class="activity"><div><b>✦ Bienvenido a Wellston</b><p>Tu primer día comienza ahora.</p><small>AHORA</small></div><div><b>◎ Zona segura</b><p>Estás dentro del campus escolar.</p><small>08:15 AM</small></div></div>
+      <hr><div class="kicker">CONTACTOS</div>
+      <div class="contact"><i class="purple">S</i><div><b>Seraphina</b><small>Estudiante · Wellston</small></div><strong id="rel-seraphina">0</strong></div>
+      <div class="contact"><i class="gold">A</i><div><b>Arlo</b><small>Estudiante · Wellston</small></div><strong id="rel-arlo">0</strong></div>
+      <div class="contact"><i class="blue">J</i><div><b>John</b><small>Estudiante · Wellston</small></div><strong id="rel-john">0</strong></div>
+      <hr><div class="kicker">ACCESOS RÁPIDOS</div>
+      <button class="quick" data-tab="phone">▣　Teléfono　›</button><button class="quick" data-tab="missions">⚑　Misiones　›</button><button class="quick" data-tab="profile">◉　Personaje　›</button>
+    </aside>
+  </section>
+  <footer>PROYECTO FAN NO OFICIAL · UNIVERSO UNORDINARY <span>Construcción temprana · Sistemas en desarrollo</span></footer>
+</main>
+<div id="modalBackdrop" class="backdrop hidden"><section class="modal panel" role="dialog" aria-modal="true"><button id="modalClose" class="close">×</button><div id="modalKicker" class="kicker">WELLSTON</div><h2 id="modalTitle">Interacción</h2><div id="modalBody"></div><div id="modalActions" class="actions"></div></section></div>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+<script src="static/js/main.js"></script>
+</body>
+</html>
