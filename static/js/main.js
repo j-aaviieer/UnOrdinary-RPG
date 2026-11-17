@@ -138,7 +138,7 @@ return{id,x,y,label,sprite,shadow,name};
 }
 s.npcs=[makeCharacter("john",390,280,"John Doe"),makeCharacter("seraphina",535,280,"Seraphina"),makeCharacter("arlo",610,365,"Arlo")];
 s.player=makeCharacter("player",450,285,"Tú");
-s.playerAura=null;s.cameras.main.setBounds(0,0,900,500);s.cameras.main.startFollow(s.player,true,.08,.08);s.keys=s.input.keyboard.addKeys({up:"W",down:"S",left:"A",right:"D",run:"SHIFT"});
+s.playerAura=null;s.cameras.main.setBounds(0,0,900,500);s.cameras.main.startFollow(s.player.sprite,true,.08,.08);s.keys=s.input.keyboard.addKeys({up:"W",down:"S",left:"A",right:"D",run:"SHIFT"});
 s.input.keyboard.on("keydown-Q",()=>{state.auraActive=!state.auraActive;if(state.auraActive&&state.aura<=0){state.auraActive=false;toast("No tienes aura suficiente.");return}if(state.auraActive)s.playerAura=s.add.circle(s.player.x,s.player.y-45,31,0x75d7f1,.13).setStrokeStyle(2,0x8de7ff,.85);else{s.playerAura?.destroy();s.playerAura=null}toast(state.auraActive?"Aura activada":"Aura desactivada")});
 s.input.keyboard.on("keydown-E",()=>{if(s.nearestNpc&&s.nearestDistance<65){const n=s.nearestNpc;state.missionDone=true;if(n.id==="john")openModal("ESTUDIANTE · WELLSTON","John Doe",'<p>«¿Eres nuevo? Intenta no meterte en problemas. Esta escuela puede ser complicada.»</p>',[{label:"Hablar un poco más",onClick:()=>{state.relations.john+=2;toast("Relación con John +2")}},{label:"Despedirse"}]);else if(n.id==="seraphina")openModal("ESTUDIANTE · WELLSTON","Seraphina",'<p>«¿Necesitas algo? Estoy ocupada, así que ve al grano.»</p>',[{label:"Presentarte",onClick:()=>{state.relations.seraphina+=2;toast("Relación con Seraphina +2")}},{label:"Despedirse"}]);else openModal("ESTUDIANTE · JERARQUÍA","Arlo",'<p>«Si vas a estudiar aquí, aprende cómo funcionan las cosas.»</p>',[{label:"Responder con respeto",onClick:()=>{state.relations.arlo++;toast("Arlo toma nota.")}},{label:"Desafiarlo",onClick:()=>{state.relations.arlo-=2;toast("Arlo no parece impresionado.")}}])}else toast("No hay nadie lo suficientemente cerca.")});
 if(!state.skill)showInitialRoll();
@@ -147,7 +147,7 @@ function update(){
 const s=this,p=s.player,k=s.keys;if(!p)return;
 const speed=k.run.isDown?205:145;let vx=0,vy=0;if(k.left.isDown)vx=-1;if(k.right.isDown)vx=1;if(k.up.isDown)vy=-1;if(k.down.isDown)vy=1;const len=Math.hypot(vx,vy)||1;
 p.x=Phaser.Math.Clamp(p.x+vx/len*speed/60,20,880);p.y=Phaser.Math.Clamp(p.y+vy/len*speed/60,20,480);
-if(s.playerAura)s.playerAura.setPosition(p.x,p.y-45);
+p.sprite.setPosition(p.x,p.y-39);p.shadow.setPosition(p.x,p.y-2);p.name.setPosition(p.x,p.y-91);if(s.playerAura)s.playerAura.setPosition(p.x,p.y-45);
 let nearest=null,dist=Infinity;s.npcs.forEach(n=>{const d=Phaser.Math.Distance.Between(p.x,p.y,n.x,n.y);if(d<dist){dist=d;nearest=n}});
 s.nearestNpc=nearest;s.nearestDistance=dist;s.npcs.forEach(n=>n.name.setPosition(n.x,n.y-91));s.player.name.setPosition(p.x,p.y-91);s.player.shadow.setPosition(p.x,p.y-2);$("interactionHint").textContent=dist<75?"E · Interactuar con "+nearest.label:"WASD · Mover     E · Interactuar";
 if(state.auraActive&&state.aura>0){state.aura=Math.max(0,state.aura-.012);if(state.aura===0){state.auraActive=false;s.playerAura?.destroy();s.playerAura=null}}
