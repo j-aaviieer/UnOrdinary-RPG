@@ -13,6 +13,8 @@
 <body>
   <main id="gameScreen">
     <div id="game"></div>
+    <section class="rpg-hud player-hud" aria-label="Estado del jugador"><div class="hud-portrait"><img src="static/img/player.svg" alt="Jugador"></div><div class="hud-info"><div class="hud-name"><strong>AVENTURERO</strong><span id="playerLevel">Nv. 1</span></div><div class="hud-meter"><span>HP</span><div class="meter-track"><i id="hpFill"></i></div><b id="hpText">100/100</b></div><div class="hud-meter aura-meter"><span>AURA</span><div class="meter-track"><i id="auraFill"></i></div><b id="auraText">60/60</b></div></div></section>
+    <section class="rpg-hud skill-hud" aria-label="Habilidad del jugador"><div class="skill-gem">✦</div><div class="skill-info"><small>HABILIDAD</small><strong id="hudSkillName">Sin descubrir</strong><span id="hudSkillLevel">Nivel 1.0</span></div><kbd>K</kbd></section>
     <nav class="quick-menu" aria-label="Menú del jugador">
       <button class="quick-button" data-panel="inventory"><kbd>I</kbd><span>Inventario</span></button>
       <button class="quick-button" data-panel="ability"><kbd>K</kbd><span>Habilidad</span></button>
