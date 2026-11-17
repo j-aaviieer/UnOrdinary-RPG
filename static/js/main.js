@@ -60,10 +60,9 @@ const config={type:Phaser.AUTO,parent:"game",width:900,height:500,backgroundColo
 new Phaser.Game(config);
 }catch(error){console.error("Error iniciando UnOrdinary-RPG:",error);fail("Hubo un error al iniciar el escenario. Abre la consola del navegador para ver el detalle.")}
 function preload(){
-this.load.image("character-john","static/img/john.svg");
-this.load.image("character-seraphina","static/img/seraphina.svg");
-this.load.image("character-arlo","static/img/arlo.svg");
-this.load.image("character-player","static/img/player.svg");
+["john","seraphina","arlo","player"].forEach(id=>{
+this.load.spritesheet("character-"+id,"static/img/"+id+"-sheet.svg",{frameWidth:48,frameHeight:64});
+});
 }
 function create(){
 const s=this;
@@ -86,11 +85,14 @@ const tree=(x,y)=>{s.add.rectangle(x,y+17,9,25,0x70563f);s.add.circle(x,y,20,0x4
 [[250,250],[650,250],[250,330],[650,330]].forEach(p=>{s.add.rectangle(p[0],p[1],58,12,0x795b43).setStrokeStyle(2,0x523d30);s.add.rectangle(p[0],p[1]-8,58,5,0x9a7958)});
 s.add.text(450,145,"PATIO CENTRAL",{fontFamily:"Arial",fontSize:"10px",fontStyle:"bold",color:"#516c5a"}).setOrigin(.5);
 function makeCharacter(id,x,y,label){
-const shadow=s.add.ellipse(x,y-2,38,11,0x14202b,.25);
-const sprite=s.add.sprite(x,y-2,"character-"+id).setOrigin(.5,1).setScale(id==="seraphina"?1.32:1.28);
-const name=s.add.text(x,y-91,label,{fontFamily:"Arial",fontSize:"11px",fontStyle:"bold",color:"#152538",backgroundColor:"#edf2e7",padding:{x:6,y:4},stroke:"#d6e0d2",strokeThickness:1}).setOrigin(.5);
-s.tweens.add({targets:sprite,y:y-4,duration:850+Math.random()*250,yoyo:true,repeat:-1,ease:"Sine.easeInOut"});
-return{id,x,y,label,sprite,shadow,name};
+const shadow=s.add.ellipse(x,y-2,30,9,0x14202b,.28);
+const sprite=s.add.sprite(x,y-2,"character-"+id,1).setOrigin(.5,1).setScale(1.22);
+const name=s.add.text(x,y-88,label,{fontFamily:"Arial",fontSize:"11px",fontStyle:"bold",color:"#152538",backgroundColor:"#edf2e7",padding:{x:6,y:4},stroke:"#d6e0d2",strokeThickness:1}).setOrigin(.5);
+["down","left","right","up"].forEach((dir,row)=>{
+s.anims.create({key:id+"-"+dir,frames:s.anims.generateFrameNumbers("character-"+id,{start:row*3,end:row*3+2}),frameRate:9,repeat:-1});
+});
+sprite.play(id+"-down");
+return{id,x,y,label,sprite,shadow,name,direction:"down"};
 }
 s.npcs=[makeCharacter("john",390,280,"John Doe"),makeCharacter("seraphina",535,280,"Seraphina"),makeCharacter("arlo",610,365,"Arlo")];
 s.player=makeCharacter("player",450,285,"Tú");
@@ -102,10 +104,15 @@ updateHUD();if(!state.skill)showInitialRoll();
 function update(){
 const s=this,p=s.player,k=s.keys;if(!p)return;
 const speed=k.run.isDown?205:145;let vx=0,vy=0;if(k.left.isDown)vx=-1;if(k.right.isDown)vx=1;if(k.up.isDown)vy=-1;if(k.down.isDown)vy=1;const len=Math.hypot(vx,vy)||1;
-p.x=Phaser.Math.Clamp(p.x+vx/len*speed/60,20,880);p.y=Phaser.Math.Clamp(p.y+vy/len*speed/60,20,480);
+const moving=!!(vx||vy);
+p.x=Phaser.Math.Clamp(p.x+vx/len*speed*(this.game.loop.delta/1000),20,880);p.y=Phaser.Math.Clamp(p.y+vy/len*speed*(this.game.loop.delta/1000),20,480);
+let direction=p.direction||"down";
+if(Math.abs(vx)>Math.abs(vy))direction=vx<0?"left":"right";else if(vy!==0)direction=vy<0?"up":"down";
+if(direction!==p.direction){p.direction=direction;p.sprite.play("player-"+direction)}
+if(moving){if(!p.sprite.anims.isPlaying)p.sprite.play("player-"+direction)}else if(p.sprite.anims.isPlaying){p.sprite.anims.stop();p.sprite.setFrame(({down:1,left:4,right:7,up:10})[direction])}
 p.sprite.setPosition(p.x,p.y-2);p.shadow.setPosition(p.x,p.y-2);p.name.setPosition(p.x,p.y-94);if(s.playerAura)s.playerAura.setPosition(p.x,p.y-45);
 let nearest=null,dist=Infinity;s.npcs.forEach(n=>{const d=Phaser.Math.Distance.Between(p.x,p.y,n.x,n.y);if(d<dist){dist=d;nearest=n}});
-s.nearestNpc=nearest;s.nearestDistance=dist;s.npcs.forEach(n=>n.name.setPosition(n.x,n.y-94));s.player.name.setPosition(p.x,p.y-94);s.player.shadow.setPosition(p.x,p.y-2);$("interactionHint").textContent=dist<75?"E · Interactuar con "+nearest.label:"WASD · Mover     E · Interactuar";
+s.nearestNpc=nearest;s.nearestDistance=dist;s.npcs.forEach(n=>n.name.setPosition(n.x,n.y-90));s.player.name.setPosition(p.x,p.y-94);s.player.shadow.setPosition(p.x,p.y-2);$("interactionHint").textContent=dist<75?"E · Interactuar con "+nearest.label:"WASD · Mover     E · Interactuar";
 if(state.auraActive&&state.aura>0){state.aura=Math.max(0,state.aura-.012);if(state.aura===0){state.auraActive=false;s.playerAura?.destroy();s.playerAura=null}}updateHUD();
 }
 })();
