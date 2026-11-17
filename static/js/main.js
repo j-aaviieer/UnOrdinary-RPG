@@ -13,7 +13,8 @@ const skillPool=[
 {name:"Telequinesis",description:"Mueve y manipula objetos a distancia mediante tu aura."}
 ];
 let savedSkill=null;try{savedSkill=JSON.parse(localStorage.getItem("unordinary_player_skill")||"null")}catch(e){}
-const state={aura:60,auraActive:false,relations:{john:0,seraphina:0,arlo:0},missionDone:false,inventory:[],skill:savedSkill,stats:{power:1,defense:1,speed:1,recovery:1,trick:1}};
+const state={health:100,maxHealth:100,aura:60,maxAura:60,auraActive:false,relations:{john:0,seraphina:0,arlo:0},missionDone:false,inventory:[],skill:savedSkill,stats:{power:1,defense:1,speed:1,recovery:1,trick:1}};
+function updateHUD(){const hp=Math.max(0,state.health),aura=Math.max(0,state.aura);const hpFill=$("hpFill"),auraFill=$("auraFill");if(hpFill)hpFill.style.width=(hp/state.maxHealth*100)+"%";if(auraFill)auraFill.style.width=(aura/state.maxAura*100)+"%";if($("hpText"))$("hpText").textContent=Math.ceil(hp)+"/"+state.maxHealth;if($("auraText"))$("auraText").textContent=Math.ceil(aura)+"/"+state.maxAura;if($("hudSkillName"))$("hudSkillName").textContent=state.skill?.name||"Sin descubrir";if($("hudSkillLevel"))$("hudSkillLevel").textContent="Nivel 1.0";}
 function toast(message){const el=$("toast");el.textContent=message;el.classList.add("visible");clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove("visible"),1800)}
 function closeModal(){if(!state.skill)return;$("modalBackdrop").classList.add("hidden");$("modalClose").style.display=""}
 function openModal(kicker,title,body,buttons=[]){$("modalKicker").textContent=kicker;$("modalTitle").textContent=title;$("modalBody").innerHTML=body;$("modalActions").replaceChildren();buttons.forEach(b=>{const el=document.createElement("button");el.textContent=b.label;el.onclick=()=>{b.onClick?.();if(b.close!==false)closeModal()};$("modalActions").append(el)});$("modalBackdrop").classList.remove("hidden")}
@@ -25,7 +26,7 @@ openModal("BIENVENIDO A WELLSTON","Despierta tu habilidad",'<p>Tu historia comie
 const action=$("modalActions").querySelector("button");if(action){action.disabled=true;action.textContent="Girando…"}
 $("rollOrb").classList.add("rolling");$("rollCaption").textContent="Analizando tu aura…";
 const interval=setInterval(()=>$("rollOrb").querySelector("span").textContent=skillPool[Math.floor(Math.random()*skillPool.length)].name,95);
-setTimeout(()=>{clearInterval(interval);const picked=skillPool[Math.floor(Math.random()*skillPool.length)];state.skill=picked;try{localStorage.setItem("unordinary_player_skill",JSON.stringify(picked))}catch(e){}
+setTimeout(()=>{clearInterval(interval);const picked=skillPool[Math.floor(Math.random()*skillPool.length)];state.skill=picked;updateHUD();try{localStorage.setItem("unordinary_player_skill",JSON.stringify(picked))}catch(e){}
 $("rollOrb").classList.remove("rolling");$("rollOrb").querySelector("span").textContent="✦";$("modalTitle").textContent=picked.name;
 $("modalBody").innerHTML='<div class="roll-result"><div class="roll-result-icon">✦</div><h3>'+picked.name+'</h3><p>'+picked.description+'</p><span>HABILIDAD OBTENIDA · GIRO GRATUITO</span></div><p class="roll-caption">Tus cinco estadísticas comienzan en nivel 1. El progreso dependerá de tu entrenamiento.</p>';
 $("modalActions").replaceChildren();const start=document.createElement("button");start.textContent="Comenzar partida";start.onclick=()=>{closeModal();$("modalClose").style.display=""};$("modalActions").append(start)
@@ -66,10 +67,15 @@ this.load.image("character-player","static/img/player.svg");
 }
 function create(){
 const s=this;
-s.add.rectangle(450,250,900,500,0x9aa78a);
-s.add.rectangle(450,250,900,104,0xc5c0a8);
-s.add.rectangle(450,250,104,500,0xc5c0a8);
-s.add.rectangle(450,75,430,115,0x526a7b).setStrokeStyle(4,0x30495b);
+// Suelo de césped en mosaico, con caminos de piedra al estilo RPG portátil clásico.
+s.add.rectangle(450,250,900,500,0x78ad65);
+for(let y=8;y<500;y+=32){for(let x=8;x<900;x+=32){const shade=((x/32+y/32)%3===0)?0x82b96d:0x75a960;s.add.rectangle(x,y,30,30,shade).setStrokeStyle(1,0x6b9e59,.35);if((x+y)%5===0)s.add.rectangle(x+7,y+9,3,3,0x9ac77c)}}
+s.add.rectangle(450,250,900,104,0xcabf9c).setStrokeStyle(2,0xa99d7c);
+s.add.rectangle(450,250,104,500,0xcabf9c).setStrokeStyle(2,0xa99d7c);
+for(let x=0;x<900;x+=32){s.add.rectangle(x+16,218,30,3,0xe1d4b0,.6);s.add.rectangle(x+16,282,30,3,0xe1d4b0,.6)}
+for(let y=0;y<500;y+=32){s.add.rectangle(398,y+16,3,30,0xe1d4b0,.6);s.add.rectangle(502,y+16,3,30,0xe1d4b0,.6)}
+s.add.rectangle(450,75,430,115,0x526a7b).setStrokeStyle(5,0x30495b);
+s.add.rectangle(450,18,440,12,0x30495b);s.add.rectangle(450,132,440,12,0x30495b);
 s.add.rectangle(450,75,400,83,0x71899a);
 s.add.rectangle(450,33,400,16,0x40596b);
 s.add.text(450,67,"WELLSTON",{fontFamily:"Arial",fontSize:"24px",fontStyle:"bold",color:"#f1f5f7"}).setOrigin(.5);
@@ -91,7 +97,7 @@ s.player=makeCharacter("player",450,285,"Tú");
 s.playerAura=null;s.cameras.main.setBounds(0,0,900,500);s.cameras.main.startFollow(s.player.sprite,true,.08,.08);s.keys=s.input.keyboard.addKeys({up:"W",down:"S",left:"A",right:"D",run:"SHIFT"});
 s.input.keyboard.on("keydown-Q",()=>{state.auraActive=!state.auraActive;if(state.auraActive&&state.aura<=0){state.auraActive=false;toast("No tienes aura suficiente.");return}if(state.auraActive)s.playerAura=s.add.circle(s.player.x,s.player.y-45,31,0x75d7f1,.13).setStrokeStyle(2,0x8de7ff,.85);else{s.playerAura?.destroy();s.playerAura=null}toast(state.auraActive?"Aura activada":"Aura desactivada")});
 s.input.keyboard.on("keydown-E",()=>{if(s.nearestNpc&&s.nearestDistance<65){const n=s.nearestNpc;state.missionDone=true;if(n.id==="john")openModal("ESTUDIANTE · WELLSTON","John Doe",'<p>«¿Eres nuevo? Intenta no meterte en problemas. Esta escuela puede ser complicada.»</p>',[{label:"Hablar un poco más",onClick:()=>{state.relations.john+=2;toast("Relación con John +2")}},{label:"Despedirse"}]);else if(n.id==="seraphina")openModal("ESTUDIANTE · WELLSTON","Seraphina",'<p>«¿Necesitas algo? Estoy ocupada, así que ve al grano.»</p>',[{label:"Presentarte",onClick:()=>{state.relations.seraphina+=2;toast("Relación con Seraphina +2")}},{label:"Despedirse"}]);else openModal("ESTUDIANTE · JERARQUÍA","Arlo",'<p>«Si vas a estudiar aquí, aprende cómo funcionan las cosas.»</p>',[{label:"Responder con respeto",onClick:()=>{state.relations.arlo++;toast("Arlo toma nota.")}},{label:"Desafiarlo",onClick:()=>{state.relations.arlo-=2;toast("Arlo no parece impresionado.")}}])}else toast("No hay nadie lo suficientemente cerca.")});
-if(!state.skill)showInitialRoll();
+updateHUD();if(!state.skill)showInitialRoll();
 }
 function update(){
 const s=this,p=s.player,k=s.keys;if(!p)return;
@@ -100,6 +106,6 @@ p.x=Phaser.Math.Clamp(p.x+vx/len*speed/60,20,880);p.y=Phaser.Math.Clamp(p.y+vy/l
 p.sprite.setPosition(p.x,p.y-2);p.shadow.setPosition(p.x,p.y-2);p.name.setPosition(p.x,p.y-94);if(s.playerAura)s.playerAura.setPosition(p.x,p.y-45);
 let nearest=null,dist=Infinity;s.npcs.forEach(n=>{const d=Phaser.Math.Distance.Between(p.x,p.y,n.x,n.y);if(d<dist){dist=d;nearest=n}});
 s.nearestNpc=nearest;s.nearestDistance=dist;s.npcs.forEach(n=>n.name.setPosition(n.x,n.y-94));s.player.name.setPosition(p.x,p.y-94);s.player.shadow.setPosition(p.x,p.y-2);$("interactionHint").textContent=dist<75?"E · Interactuar con "+nearest.label:"WASD · Mover     E · Interactuar";
-if(state.auraActive&&state.aura>0){state.aura=Math.max(0,state.aura-.012);if(state.aura===0){state.auraActive=false;s.playerAura?.destroy();s.playerAura=null}}
+if(state.auraActive&&state.aura>0){state.aura=Math.max(0,state.aura-.012);if(state.aura===0){state.auraActive=false;s.playerAura?.destroy();s.playerAura=null}}updateHUD();
 }
 })();
