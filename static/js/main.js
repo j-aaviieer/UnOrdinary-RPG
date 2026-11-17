@@ -73,11 +73,73 @@ const tree=(x,y)=>{s.add.rectangle(x,y+17,9,25,0x70563f);s.add.circle(x,y,20,0x4
 [[85,90],[160,180],[740,90],[820,170],[95,390],[790,390],[330,400],[575,400]].forEach(p=>tree(p[0],p[1]));
 [[250,250],[650,250],[250,330],[650,330]].forEach(p=>{s.add.rectangle(p[0],p[1],58,12,0x795b43).setStrokeStyle(2,0x523d30);s.add.rectangle(p[0],p[1]-8,58,5,0x9a7958)});
 s.add.text(450,145,"PATIO CENTRAL",{fontFamily:"Arial",fontSize:"10px",fontStyle:"bold",color:"#516c5a"}).setOrigin(.5);
-function makeNpc(id,x,y,label,color,initial){const c=s.add.container(x,y);c.add([s.add.ellipse(0,13,23,8,0x17251e,.25),s.add.rectangle(0,0,19,27,color).setStrokeStyle(2,0x24303a),s.add.circle(0,-19,9,0xd7ad8d),s.add.text(0,-19,initial,{fontFamily:"Arial",fontSize:"9px",fontStyle:"bold",color:"#263747"}).setOrigin(.5)]);s.add.text(x,y-42,label,{fontFamily:"Arial",fontSize:"10px",fontStyle:"bold",color:"#142538",backgroundColor:"#e7ecdf",padding:{x:5,y:3}}).setOrigin(.5);return{id,x,y,label,container:c}}
-s.npcs=[makeNpc("john",390,280,"John",0x3d5870,"J"),makeNpc("seraphina",535,280,"Seraphina",0x6c5d83,"S"),makeNpc("arlo",610,365,"Arlo",0x8b744c,"A")];
-s.player=s.add.container(450,285);s.player.add([s.add.ellipse(0,13,23,9,0x17251e,.28),s.add.rectangle(0,0,19,27,0x253f58).setStrokeStyle(2,0x142b40),s.add.circle(0,-19,9,0xd7ad8d).setStrokeStyle(1,0x8e6d59)]);
+function makeCharacterTexture(id){
+const g=s.make.graphics({x:0,y:0,add:false});
+const styles={
+player:{hair:0x795238,skin:0xe5b895,jacket:0x315b78,shirt:0xf0eee5,tie:0x9b4650,pants:0x26384b,shoe:0x182431,accent:0x72c9dd},
+john:{hair:0x171b22,skin:0xe5b18f,jacket:0x344f6b,shirt:0xe9edf0,tie:0x8d3d4c,pants:0x27384b,shoe:0x151e2b,accent:0x8aa9c2},
+seraphina:{hair:0xf0c85d,skin:0xf1c5a5,jacket:0x70558e,shirt:0xf5f0f5,tie:0xbaa0d0,pants:0x463c59,shoe:0x282238,accent:0xe8c5fa},
+arlo:{hair:0xd7b45d,skin:0xe6b993,jacket:0x485c78,shirt:0xf0eee5,tie:0xc3a45a,pants:0x26384b,shoe:0x182431,accent:0xd9c17b}
+};
+const c=styles[id]||styles.player;
+const outline=0x182535;
+g.fillStyle(0x14202b,.25);g.fillEllipse(32,75,34,9);
+// legs and polished shoes
+g.fillStyle(c.pants);g.fillRoundedRect(18,52,12,19,4);g.fillRoundedRect(34,52,12,19,4);
+g.lineStyle(2,outline,1);g.strokeRoundedRect(18,52,12,19,4);g.strokeRoundedRect(34,52,12,19,4);
+g.fillStyle(c.shoe);g.fillRoundedRect(15,67,16,8,3);g.fillRoundedRect(33,67,16,8,3);
+g.fillStyle(0xffffff,.22);g.fillRect(18,69,8,2);g.fillRect(36,69,8,2);
+// hair falling behind the head
+g.fillStyle(c.hair);g.fillRoundedRect(id==="seraphina"?15:18,5,id==="seraphina"?34:28,34,11);
+// arms, cuffs and hands
+g.fillStyle(c.jacket);g.fillRoundedRect(10,32,12,25,5);g.fillRoundedRect(42,32,12,25,5);
+g.lineStyle(2,outline,1);g.strokeRoundedRect(10,32,12,25,5);g.strokeRoundedRect(42,32,12,25,5);
+g.fillStyle(c.shirt);g.fillRect(11,48,10,4);g.fillRect(43,48,10,4);
+g.fillStyle(c.skin);g.fillCircle(16,59,5);g.fillCircle(48,59,5);
+// torso, jacket and shirt
+g.fillStyle(c.jacket);g.fillRoundedRect(18,30,28,29,7);g.lineStyle(2,outline,1);g.strokeRoundedRect(18,30,28,29,7);
+g.fillStyle(c.shirt);g.fillTriangle(25,31,32,44,39,31);
+g.fillStyle(c.tie);g.fillTriangle(30,34,34,34,33,49);g.fillTriangle(30,49,33,54,36,49);
+g.fillStyle(c.accent);g.fillCircle(23,43,1.7);g.fillCircle(41,43,1.7);
+// neck and face
+g.fillStyle(c.skin);g.fillRoundedRect(27,23,10,12,3);
+g.fillStyle(c.skin);g.fillEllipse(32,18,25,27);g.lineStyle(2,outline,1);g.strokeEllipse(32,18,25,27);
+// ears
+g.fillStyle(c.skin);g.fillCircle(19,19,3);g.fillCircle(45,19,3);
+// fringe and character-specific hair silhouette
+g.fillStyle(c.hair);
+if(id==="john"){
+g.fillTriangle(19,12,24,1,29,12);g.fillTriangle(25,10,34,0,35,12);g.fillTriangle(32,11,44,4,42,17);g.fillTriangle(19,11,17,20,25,18);
+}else if(id==="seraphina"){
+g.fillRoundedRect(15,8,8,42,5);g.fillRoundedRect(41,8,8,42,5);g.fillEllipse(32,9,27,13);g.fillTriangle(20,10,29,2,32,13);g.fillTriangle(30,12,42,3,42,16);
+}else if(id==="arlo"){
+g.fillEllipse(32,8,28,13);g.fillTriangle(20,11,27,0,31,12);g.fillTriangle(28,10,43,2,40,15);g.fillTriangle(39,9,47,8,43,17);
+}else{
+g.fillEllipse(32,8,27,13);g.fillTriangle(19,12,25,2,31,14);g.fillTriangle(29,10,40,3,42,15);g.fillTriangle(37,12,46,8,43,19);
+}
+// eyes, brows, nose and expression
+g.fillStyle(outline);g.fillRoundedRect(25,17,4,2,1);g.fillRoundedRect(35,17,4,2,1);
+g.fillStyle(0xffffff);g.fillCircle(27,19,1.1);g.fillCircle(37,19,1.1);
+g.lineStyle(1.5,outline,1);g.lineBetween(25,14,29,13);g.lineBetween(35,13,39,14);
+g.lineStyle(1,0x9a665d,1);g.lineBetween(32,20,32,23);g.lineBetween(29,26,35,26);
+// small uniform details
+g.lineStyle(1,0xffffff,.6);g.lineBetween(22,38,27,43);g.lineBetween(42,38,37,43);
+if(id==="seraphina"){g.fillStyle(0xe8d38a);g.fillCircle(47,29,2);g.fillStyle(0xe9d9f3);g.fillCircle(17,29,2)}
+if(id==="arlo"){g.fillStyle(0xd7bd78);g.fillRect(20,53,24,2)}
+g.generateTexture("character-"+id,64,80);g.destroy();
+}
+function makeCharacter(id,x,y,label){
+if(!s.textures.exists("character-"+id))makeCharacterTexture(id);
+const shadow=s.add.ellipse(x,y-2,38,11,0x14202b,.25);
+const sprite=s.add.sprite(x,y-39,"character-"+id).setOrigin(.5,.5).setScale(id==="arlo"?1.04:1);
+const name=s.add.text(x,y-91,label,{fontFamily:"Arial",fontSize:"11px",fontStyle:"bold",color:"#152538",backgroundColor:"#edf2e7",padding:{x:6,y:4},stroke:"#d6e0d2",strokeThickness:1}).setOrigin(.5);
+s.tweens.add({targets:sprite,y:y-41,duration:850+Math.random()*250,yoyo:true,repeat:-1,ease:"Sine.easeInOut"});
+return{id,x,y,label,sprite,shadow,name};
+}
+s.npcs=[makeCharacter("john",390,280,"John Doe"),makeCharacter("seraphina",535,280,"Seraphina"),makeCharacter("arlo",610,365,"Arlo")];
+s.player=makeCharacter("player",450,285,"Tú");
 s.playerAura=null;s.cameras.main.setBounds(0,0,900,500);s.cameras.main.startFollow(s.player,true,.08,.08);s.keys=s.input.keyboard.addKeys({up:"W",down:"S",left:"A",right:"D",run:"SHIFT"});
-s.input.keyboard.on("keydown-Q",()=>{state.auraActive=!state.auraActive;if(state.auraActive&&state.aura<=0){state.auraActive=false;toast("No tienes aura suficiente.");return}if(state.auraActive)s.playerAura=s.add.circle(s.player.x,s.player.y-9,25,0x75d7f1,.13).setStrokeStyle(2,0x8de7ff,.85);else{s.playerAura?.destroy();s.playerAura=null}toast(state.auraActive?"Aura activada":"Aura desactivada")});
+s.input.keyboard.on("keydown-Q",()=>{state.auraActive=!state.auraActive;if(state.auraActive&&state.aura<=0){state.auraActive=false;toast("No tienes aura suficiente.");return}if(state.auraActive)s.playerAura=s.add.circle(s.player.x,s.player.y-45,31,0x75d7f1,.13).setStrokeStyle(2,0x8de7ff,.85);else{s.playerAura?.destroy();s.playerAura=null}toast(state.auraActive?"Aura activada":"Aura desactivada")});
 s.input.keyboard.on("keydown-E",()=>{if(s.nearestNpc&&s.nearestDistance<65){const n=s.nearestNpc;state.missionDone=true;if(n.id==="john")openModal("ESTUDIANTE · WELLSTON","John Doe",'<p>«¿Eres nuevo? Intenta no meterte en problemas. Esta escuela puede ser complicada.»</p>',[{label:"Hablar un poco más",onClick:()=>{state.relations.john+=2;toast("Relación con John +2")}},{label:"Despedirse"}]);else if(n.id==="seraphina")openModal("ESTUDIANTE · WELLSTON","Seraphina",'<p>«¿Necesitas algo? Estoy ocupada, así que ve al grano.»</p>',[{label:"Presentarte",onClick:()=>{state.relations.seraphina+=2;toast("Relación con Seraphina +2")}},{label:"Despedirse"}]);else openModal("ESTUDIANTE · JERARQUÍA","Arlo",'<p>«Si vas a estudiar aquí, aprende cómo funcionan las cosas.»</p>',[{label:"Responder con respeto",onClick:()=>{state.relations.arlo++;toast("Arlo toma nota.")}},{label:"Desafiarlo",onClick:()=>{state.relations.arlo-=2;toast("Arlo no parece impresionado.")}}])}else toast("No hay nadie lo suficientemente cerca.")});
 if(!state.skill)showInitialRoll();
 }
@@ -85,9 +147,9 @@ function update(){
 const s=this,p=s.player,k=s.keys;if(!p)return;
 const speed=k.run.isDown?205:145;let vx=0,vy=0;if(k.left.isDown)vx=-1;if(k.right.isDown)vx=1;if(k.up.isDown)vy=-1;if(k.down.isDown)vy=1;const len=Math.hypot(vx,vy)||1;
 p.x=Phaser.Math.Clamp(p.x+vx/len*speed/60,20,880);p.y=Phaser.Math.Clamp(p.y+vy/len*speed/60,20,480);
-if(s.playerAura)s.playerAura.setPosition(p.x,p.y-9);
+if(s.playerAura)s.playerAura.setPosition(p.x,p.y-45);
 let nearest=null,dist=Infinity;s.npcs.forEach(n=>{const d=Phaser.Math.Distance.Between(p.x,p.y,n.x,n.y);if(d<dist){dist=d;nearest=n}});
-s.nearestNpc=nearest;s.nearestDistance=dist;$("interactionHint").textContent=dist<75?"E · Interactuar con "+nearest.label:"WASD · Mover     E · Interactuar";
+s.nearestNpc=nearest;s.nearestDistance=dist;s.npcs.forEach(n=>n.name.setPosition(n.x,n.y-91));s.player.name.setPosition(p.x,p.y-91);s.player.shadow.setPosition(p.x,p.y-2);$("interactionHint").textContent=dist<75?"E · Interactuar con "+nearest.label:"WASD · Mover     E · Interactuar";
 if(state.auraActive&&state.aura>0){state.aura=Math.max(0,state.aura-.012);if(state.aura===0){state.auraActive=false;s.playerAura?.destroy();s.playerAura=null}}
 }
 })();
