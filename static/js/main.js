@@ -1,12 +1,51 @@
 (()=>{
 const $=id=>document.getElementById(id);
-const state={aura:60,auraActive:false,relations:{john:0,seraphina:0,arlo:0},missionDone:false,inventory:[]};
+const skillPool=[
+{name:"Barrera",description:"Genera un escudo de energía para protegerte a ti y a quienes estén cerca."},
+{name:"Relámpago",description:"Canaliza descargas eléctricas para atacar y desestabilizar a tus oponentes."},
+{name:"Rayo de energía",description:"Concentra tu aura y dispara proyectiles de energía a distancia."},
+{name:"Curación",description:"Utiliza tu aura para acelerar la recuperación de heridas."},
+{name:"Manipulación temporal",description:"Altera brevemente el flujo del tiempo a tu alrededor."},
+{name:"Cazador",description:"Mejora tus sentidos y tu capacidad para localizar objetivos."},
+{name:"Regeneración",description:"Recupera tu estado físico de forma gradual."},
+{name:"Cambio de fase",description:"Altera tu estado corporal para esquivar o atravesar ataques."},
+{name:"Descarga de energía",description:"Libera ráfagas de aura en un área cercana."},
+{name:"Telequinesis",description:"Mueve y manipula objetos a distancia mediante tu aura."}
+];
+let savedSkill=null;try{savedSkill=JSON.parse(localStorage.getItem("unordinary_player_skill")||"null")}catch(e){}
+const state={aura:60,auraActive:false,relations:{john:0,seraphina:0,arlo:0},missionDone:false,inventory:[],skill:savedSkill,stats:{power:1,defense:1,speed:1,recovery:1,trick:1}};
 function toast(message){const el=$("toast");el.textContent=message;el.classList.add("visible");clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove("visible"),1800)}
-function closeModal(){$("modalBackdrop").classList.add("hidden")}
+function closeModal(){if(!state.skill)return;$("modalBackdrop").classList.add("hidden");$("modalClose").style.display=""}
 function openModal(kicker,title,body,buttons=[]){$("modalKicker").textContent=kicker;$("modalTitle").textContent=title;$("modalBody").innerHTML=body;$("modalActions").replaceChildren();buttons.forEach(b=>{const el=document.createElement("button");el.textContent=b.label;el.onclick=()=>{b.onClick?.();if(b.close!==false)closeModal()};$("modalActions").append(el)});$("modalBackdrop").classList.remove("hidden")}
 $("modalClose").onclick=closeModal;$("modalBackdrop").onclick=e=>{if(e.target===$("modalBackdrop"))closeModal()};
+function showInitialRoll(){
+$("modalClose").style.display="none";
+$("modalBackdrop").onclick=e=>{if(e.target===$("modalBackdrop")&&state.skill)closeModal()};
+openModal("BIENVENIDO A WELLSTON","Despierta tu habilidad",'<p>Tu historia comienza con una habilidad que todavía no conoces. Tienes <strong>un giro gratuito</strong> para descubrirla.</p><div class="roll-orb" id="rollOrb"><span>?</span></div><p class="roll-caption" id="rollCaption">La habilidad se determinará al azar.</p>',[{label:"Girar habilidad gratis",close:false,onClick:()=>{
+const action=$("modalActions").querySelector("button");if(action){action.disabled=true;action.textContent="Girando…"}
+$("rollOrb").classList.add("rolling");$("rollCaption").textContent="Analizando tu aura…";
+const interval=setInterval(()=>$("rollOrb").querySelector("span").textContent=skillPool[Math.floor(Math.random()*skillPool.length)].name,95);
+setTimeout(()=>{clearInterval(interval);const picked=skillPool[Math.floor(Math.random()*skillPool.length)];state.skill=picked;try{localStorage.setItem("unordinary_player_skill",JSON.stringify(picked))}catch(e){}
+$("rollOrb").classList.remove("rolling");$("rollOrb").querySelector("span").textContent="✦";$("modalTitle").textContent=picked.name;
+$("modalBody").innerHTML='<div class="roll-result"><div class="roll-result-icon">✦</div><h3>'+picked.name+'</h3><p>'+picked.description+'</p><span>HABILIDAD OBTENIDA · GIRO GRATUITO</span></div><p class="roll-caption">Tus cinco estadísticas comienzan en nivel 1. El progreso dependerá de tu entrenamiento.</p>';
+$("modalActions").replaceChildren();const start=document.createElement("button");start.textContent="Comenzar partida";start.onclick=()=>{closeModal();$("modalClose").style.display=""};$("modalActions").append(start)
+},1800)
+}}])
+}
 function inventory(){let slots="";for(let i=0;i<16;i++){const item=state.inventory[i];slots+=`<div class="inventory-slot ${item?"filled":""}"><b>${item?item.icon:"＋"}</b><span>${item?item.name:"Vacío"}</span></div>`}openModal("PERTENENCIAS","Inventario",'<p>Objetos que llevas contigo.</p><div class="inventory-grid">'+slots+'</div><div class="stat-row"><span>Espacio utilizado</span><strong>'+state.inventory.length+' / 16</strong></div>',[{label:"Cerrar"}])}
-function ability(){const stats=[["Poder",3],["Defensa",3],["Velocidad",3],["Recuperación",3],["Truco",3]];openModal("EXPEDIENTE DE HABILIDAD","Manifestación",'<p>Estadísticas actuales de tu habilidad.</p>'+stats.map(([n,v])=>'<div class="stat-row"><span>'+n+'</span><div class="stat-track"><i style="width:'+v*10+'%"></i></div><strong>'+v+'</strong></div>').join('')+'<div class="stat-row"><span>Nivel</span><strong>3.0 · Medio</strong></div><div class="stat-row"><span>Aura</span><strong>'+Math.ceil(state.aura)+' / 60</strong></div>',[{label:"Cerrar"}])}
+function radarChart(){
+const names=["Poder","Velocidad","Truco","Recuperación","Defensa"],cx=180,cy=143,r=88;
+const point=(level,i)=>{const a=-Math.PI/2+Math.PI*2*i/5;return[cx+Math.cos(a)*r*level/10,cy+Math.sin(a)*r*level/10]};
+let rings="";for(let n=2;n<=10;n+=2)rings+='<polygon points="'+names.map((_,i)=>point(n,i).join(",")).join(" ")+'" class="radar-ring"/>';
+let axes="",labels="";names.forEach((name,i)=>{const p=point(10,i),l=point(11.5,i);axes+='<line x1="'+cx+'" y1="'+cy+'" x2="'+p[0]+'" y2="'+p[1]+'" class="radar-axis"/>';labels+='<text x="'+l[0]+'" y="'+l[1]+'" class="radar-label" text-anchor="middle" dominant-baseline="middle">'+name+'</text>'});
+const values=[1,1,1,1,1],data=values.map((v,i)=>point(v,i).join(",")).join(" ");
+return '<svg class="radar-chart" viewBox="0 0 360 286" role="img" aria-label="Gráfico de radar con todas las estadísticas en nivel 1"><g>'+rings+axes+'<polygon points="'+data+'" class="radar-data"/>'+values.map((v,i)=>{const p=point(v,i);return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3.5" class="radar-point"/>'}).join("")+'</g>'+labels+'<text x="180" y="276" class="radar-scale">ESCALA DE ESTADÍSTICAS · 1–10</text></svg>'
+}
+function ability(){
+const labels=["Poder","Velocidad","Truco","Recuperación","Defensa"];
+const values=labels.map(n=>'<div><span>'+n+'</span><strong>1</strong></div>').join("");
+openModal("EXPEDIENTE DE HABILIDAD",state.skill?state.skill.name:"Habilidad sin asignar",'<div class="ability-summary"><span class="ability-tag">HABILIDAD</span><p>'+(state.skill?state.skill.description:"Todavía no has obtenido una habilidad.")+'</p></div>'+radarChart()+'<div class="ability-values">'+values+'</div><div class="ability-level"><span>NIVEL ACTUAL</span><strong>1.0</strong><small>Principiante · Todo está por desarrollar</small></div><div class="aura-readout">Aura disponible <strong>'+Math.ceil(state.aura)+' / 60</strong></div>',[{label:"Cerrar"}])
+}
 function missions(){openModal("DIARIO","Misiones",'<div class="mission-card"><strong>Un nuevo comienzo</strong><p>Explora el patio y habla con un estudiante.</p><div class="mission-status">'+(state.missionDone?"COMPLETADA":"EN CURSO")+'</div></div><div class="mission-card"><strong>La jerarquía</strong><p>Descubre cómo se organiza Wellston.</p><div class="mission-status">PRÓXIMAMENTE</div></div>',[{label:"Cerrar"}])}
 function phone(){openModal("DISPOSITIVO PERSONAL","Teléfono",'<div class="mission-card"><strong>Mensajes</strong><p>No tienes mensajes nuevos.</p></div><div class="mission-card"><strong>Noticias</strong><p>El campus está tranquilo esta mañana.</p></div>',[{label:"Cerrar"}])}
 const panels={inventory,ability,missions,phone};
@@ -40,6 +79,7 @@ s.player=s.add.container(450,285);s.player.add([s.add.ellipse(0,13,23,9,0x17251e
 s.playerAura=null;s.cameras.main.setBounds(0,0,900,500);s.cameras.main.startFollow(s.player,true,.08,.08);s.keys=s.input.keyboard.addKeys({up:"W",down:"S",left:"A",right:"D",run:"SHIFT"});
 s.input.keyboard.on("keydown-Q",()=>{state.auraActive=!state.auraActive;if(state.auraActive&&state.aura<=0){state.auraActive=false;toast("No tienes aura suficiente.");return}if(state.auraActive)s.playerAura=s.add.circle(s.player.x,s.player.y-9,25,0x75d7f1,.13).setStrokeStyle(2,0x8de7ff,.85);else{s.playerAura?.destroy();s.playerAura=null}toast(state.auraActive?"Aura activada":"Aura desactivada")});
 s.input.keyboard.on("keydown-E",()=>{if(s.nearestNpc&&s.nearestDistance<65){const n=s.nearestNpc;state.missionDone=true;if(n.id==="john")openModal("ESTUDIANTE · WELLSTON","John Doe",'<p>«¿Eres nuevo? Intenta no meterte en problemas. Esta escuela puede ser complicada.»</p>',[{label:"Hablar un poco más",onClick:()=>{state.relations.john+=2;toast("Relación con John +2")}},{label:"Despedirse"}]);else if(n.id==="seraphina")openModal("ESTUDIANTE · WELLSTON","Seraphina",'<p>«¿Necesitas algo? Estoy ocupada, así que ve al grano.»</p>',[{label:"Presentarte",onClick:()=>{state.relations.seraphina+=2;toast("Relación con Seraphina +2")}},{label:"Despedirse"}]);else openModal("ESTUDIANTE · JERARQUÍA","Arlo",'<p>«Si vas a estudiar aquí, aprende cómo funcionan las cosas.»</p>',[{label:"Responder con respeto",onClick:()=>{state.relations.arlo++;toast("Arlo toma nota.")}},{label:"Desafiarlo",onClick:()=>{state.relations.arlo-=2;toast("Arlo no parece impresionado.")}}])}else toast("No hay nadie lo suficientemente cerca.")});
+if(!state.skill)showInitialRoll();
 }
 function update(){
 const s=this,p=s.player,k=s.keys;if(!p)return;
